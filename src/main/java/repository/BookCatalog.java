@@ -3,14 +3,11 @@ package repository;
 import model.Book;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
 
-public class BookList {
-    ArrayList<Book> booksList;
+public class BookCatalog {
+    private final ArrayList<Book> booksList;
 
-    public BookList(ArrayList<Book> booksList) {
+    public BookCatalog(ArrayList<Book> booksList) {
         this.booksList = booksList;
     }
 
@@ -18,7 +15,7 @@ public class BookList {
         return booksList;
     }
 
-    public BookList() {
+    public BookCatalog() {
         this.booksList = new ArrayList<Book>();
     }
 
@@ -27,9 +24,7 @@ public class BookList {
         String a2 = b2.getName();
         int v1 = (a1.length() - a1.replace(value, "").length()) / value.length();
         int v2 = (a2.length() - a2.replace(value, "").length()) / value.length();
-        if (v1 > v2) return -1;
-        else if (v1 < v2) return 1;
-        else return 0;
+        return Integer.compare(v2, v1);
     }
 
     private int comparatorAuthorName(Book b1, Book b2, String value) {
@@ -37,9 +32,7 @@ public class BookList {
         String a2 = b2.getAuthorName();
         int v1 = (a1.length() - a1.replace(value, "").length()) / value.length();
         int v2 = (a2.length() - a2.replace(value, "").length()) / value.length();
-        if (v1 > v2) return -1;
-        else if (v1 < v2) return 1;
-        else return 0;
+        return Integer.compare(v2, v1);
     }
 
     private int comparatorIsbn(Book b1, Book b2, String value) {
@@ -47,9 +40,7 @@ public class BookList {
         String a2 = b2.getIsbn();
         int v1 = (a1.length() - a1.replace(value, "").length()) / value.length();
         int v2 = (a2.length() - a2.replace(value, "").length()) / value.length();
-        if (v1 > v2) return -1;
-        else if (v1 < v2) return 1;
-        else return 0;
+        return Integer.compare(v2, v1);
     }
 
     private int comparatorAnnotation(Book b1, Book b2, String value) {
@@ -57,35 +48,34 @@ public class BookList {
         String a2 = b2.getAnnotation();
         int v1 = (a1.length() - a1.replace(value, "").length()) / value.length();
         int v2 = (a2.length() - a2.replace(value, "").length()) / value.length();
-        if (v1 > v2) return -1;
-        else if (v1 < v2) return 1;
-        else return 0;
+        return Integer.compare(v2, v1);
     }
 
-    public BookList findBy(String by, String value) throws Exception {
+    public BookCatalog findBy(String by, String value) throws Exception {
         ArrayList<Book> sortedBooksList = this.booksList;
 
         //сортировка по количеству вхождений
-        if (by.equals("name")) {
-            sortedBooksList.sort((b1, b2) -> this.comparatorName(b1, b2, value));
+        switch (by) {
+            case "name":
+                sortedBooksList.sort((b1, b2) -> this.comparatorName(b1, b2, value));
+                break;
+            case "isbn":
+                sortedBooksList.sort((b1, b2) -> this.comparatorIsbn(b1, b2, value));
+                break;
+            case "authorName":
+                sortedBooksList.sort((b1, b2) -> this.comparatorAuthorName(b1, b2, value));
+                break;
+            case "annotation":
+                sortedBooksList.sort((b1, b2) -> this.comparatorAnnotation(b1, b2, value));
+                break;
+            default:
+                throw new Exception("Wrong by parameter");
+        }
 
-        } else if (by.equals("isbn")) {
-            sortedBooksList.sort((b1, b2) -> this.comparatorIsbn(b1, b2, value));
-
-        } else if (by.equals("authorName")) {
-            sortedBooksList.sort((b1, b2) -> this.comparatorAuthorName(b1, b2, value));
-
-        } else if (by.equals("annotation")) {
-            sortedBooksList.sort((b1, b2) -> this.comparatorAnnotation(b1, b2, value));
-
-        } else throw new Exception("Wrong by parameter");
-
-        return new BookList(sortedBooksList);
+        return new BookCatalog(sortedBooksList);
     }
 
-    ;
-
-    public void addBook(Book book) {
+    public void addRecord(Book book) {
         booksList.add(book);
     }
 
