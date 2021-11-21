@@ -1,91 +1,63 @@
 package repository;
 
 import model.Book;
+import model.Client;
+import persistence.AppDatabaseAccessor;
+import util.Pair;
 
-import java.util.ArrayList;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.stream.Collectors;
 
 public class BookCatalog {
-    private final ArrayList<Book> booksList;
+    private final CopyOnWriteArrayList<Book> booksList;
+    private final AppDatabaseAccessor bookAccessor;
 
-    public BookCatalog(ArrayList<Book> booksList) {
-        this.booksList = booksList;
+    public BookCatalog(AppDatabaseAccessor bookAccessor) {
+        this.booksList = new CopyOnWriteArrayList<>();
+        this.bookAccessor = bookAccessor;
     }
 
-    public ArrayList<Book> all() {
+    public void loadBooks(int clientId) {
+        this.booksList.clear();
+        this.booksList.addAll(bookAccessor.findAll(clientId));
+    }
+
+    public Client authenticate(String name) {
+        return bookAccessor.findClientByName(name);
+    }
+
+    public Pair<String, Client> register(String name) {
+        if (bookAccessor.findClientByName(name) != null) {
+            return new Pair<>("User is already registered!", null);
+        }
+        boolean isSuccessful = bookAccessor.register(name);
+        if (isSuccessful) {
+            return new Pair<>("Successfully registered!", bookAccessor.findClientByName(name));
+        } else {
+            return new Pair<>("Unknown error", null);
+        }
+    }
+
+    public CopyOnWriteArrayList<Book> all() {
         return booksList;
     }
 
-    public BookCatalog() {
-        this.booksList = new ArrayList<Book>();
-    }
-
-    private int comparatorName(Book b1, Book b2, String value) {
-        String a1 = b1.getName();
-        String a2 = b2.getName();
-        int v1 = (a1.length() - a1.replace(value, "").length()) / value.length();
-        int v2 = (a2.length() - a2.replace(value, "").length()) / value.length();
-        return Integer.compare(v2, v1);
-    }
-
-    private int comparatorAuthorName(Book b1, Book b2, String value) {
-        String a1 = b1.getAuthorName();
-        String a2 = b2.getAuthorName();
-        int v1 = (a1.length() - a1.replace(value, "").length()) / value.length();
-        int v2 = (a2.length() - a2.replace(value, "").length()) / value.length();
-        return Integer.compare(v2, v1);
-    }
-
-    private int comparatorIsbn(Book b1, Book b2, String value) {
-        String a1 = b1.getIsbn();
-        String a2 = b2.getIsbn();
-        int v1 = (a1.length() - a1.replace(value, "").length()) / value.length();
-        int v2 = (a2.length() - a2.replace(value, "").length()) / value.length();
-        return Integer.compare(v2, v1);
-    }
-
-    private int comparatorAnnotation(Book b1, Book b2, String value) {
-        String a1 = b1.getAnnotation();
-        String a2 = b2.getAnnotation();
-        int v1 = (a1.length() - a1.replace(value, "").length()) / value.length();
-        int v2 = (a2.length() - a2.replace(value, "").length()) / value.length();
-        return Integer.compare(v2, v1);
-    }
-
-    public BookCatalog findBy(String by, String value) throws Exception {
-        ArrayList<Book> sortedBooksList = this.booksList;
-
-        //сортировка по количеству вхождений
-        switch (by) {
-            case "name":
-                sortedBooksList.sort((b1, b2) -> this.comparatorName(b1, b2, value));
-                break;
-            case "isbn":
-                sortedBooksList.sort((b1, b2) -> this.comparatorIsbn(b1, b2, value));
-                break;
-            case "authorName":
-                sortedBooksList.sort((b1, b2) -> this.comparatorAuthorName(b1, b2, value));
-                break;
-            case "annotation":
-                sortedBooksList.sort((b1, b2) -> this.comparatorAnnotation(b1, b2, value));
-                break;
-            default:
-                throw new Exception("Wrong by parameter");
+    public boolean addRecord(Book book) {
+        boolean isSuccessful = bookAccessor.save(book);
+        if (isSuccessful) {
+            booksList.add(book);
         }
-
-        return new BookCatalog(sortedBooksList);
-    }
-
-    public void addRecord(Book book) {
-        booksList.add(book);
+        return isSuccessful;
     }
 
 
     @Override
     public String toString() {
-        StringBuilder output = new StringBuilder();
-        for (Book b : booksList) {
-            output.append("Название: ").append(b.getName()).append("\nИмя автора: ").append(b.getAuthorName()).append("\nЖанр: ").append(b.getGenre()).append("\nДата публикации: ").append(b.getPublishDate()).append("\nISBN: ").append(b.getIsbn()).append("\n\n");
-        }
-        return output.toString();
+        return booksList.stream().map(b -> String.format(
+                        "Название: %s\n" +
+                        "Имя автора: %s\n" +
+                        "Жанр: %s\n" +
+                        "Дата публикации: %s\n" +
+                        "ISBN: %s\n", b.getName(), b.getAuthorName(), b.getGenre(), b.getPublishDate(), b.getISBN())).collect(Collectors.joining("\n"));
     }
 }

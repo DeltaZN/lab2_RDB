@@ -2,6 +2,7 @@ package ru.itmo;
 
 import command.*;
 import lombok.SneakyThrows;
+import model.Client;
 import repository.BookCatalog;
 
 import java.io.BufferedReader;
@@ -16,6 +17,7 @@ public class CommandHandler {
     private boolean isRunning = true;
     private final HashMap<String, Command> availableCommands = new HashMap<>();
     private Command unknownCommand;
+    private Client client = null;
 
     public CommandHandler(Reader reader, Writer writer, BookCatalog bookCatalog) {
         this.reader = reader;
@@ -27,13 +29,13 @@ public class CommandHandler {
     @SneakyThrows
     public void handleCommands() {
         BufferedReader reader = new BufferedReader(this.reader);
-        new HelpCommand(writer).execute();
+        new HelpCommand(writer).execute(client);
         while (isRunning) {
             writer.write("Input the command:\n");
             writer.flush();
             String cmd = reader.readLine().toLowerCase();
             Command command = getCmdFromStr(cmd);
-            command.execute();
+            command.execute(client);
             writer.write("----\n");
             writer.flush();
         }
@@ -46,6 +48,9 @@ public class CommandHandler {
         registerCommandType("search", new SearchCommand(reader, writer, bookCatalog));
         registerCommandType("exit", new ExitCommand(writer, () -> isRunning = false));
         registerCommandType("help", new HelpCommand(writer));
+        registerCommandType("login", new LoginCommand(reader, writer, bookCatalog, client -> this.client = client));
+        registerCommandType("register", new RegisterCommand(reader, writer, bookCatalog, client -> this.client = client));
+        registerCommandType("logout", new LogoutCommand(writer, () -> this.client = null));
     }
 
     public void registerCommandType(String name, Command command) {

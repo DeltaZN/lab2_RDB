@@ -2,6 +2,7 @@ package command;
 import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
 import model.Book;
+import model.Client;
 import repository.BookCatalog;
 
 import java.io.BufferedReader;
@@ -21,7 +22,12 @@ public class SearchCommand implements Command {
 
     @Override
     @SneakyThrows
-    public void execute() {
+    public void execute(Client client) {
+        if (!isAuthenticated(client)) {
+            writer.write("Only authenticated user can execute this command.\n");
+            writer.flush();
+            return;
+        }
         BufferedReader br = new BufferedReader(reader);
         writer.write("Input the part of the name to find books in the catalog:\n");
         writer.flush();

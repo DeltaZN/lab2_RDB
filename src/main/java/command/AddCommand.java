@@ -3,6 +3,7 @@ package command;
 import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
 import model.Book;
+import model.Client;
 import repository.BookCatalog;
 
 import java.io.BufferedReader;
@@ -18,7 +19,12 @@ public class AddCommand implements Command {
 
     @Override
     @SneakyThrows
-    public void execute() {
+    public void execute(Client client) {
+        if (!isAuthenticated(client)) {
+            writer.write("Only authenticated user can execute this command.\n");
+            writer.flush();
+            return;
+        }
         BufferedReader br = new BufferedReader(reader);
         writer.write("Input name:\n");
         writer.flush();
@@ -38,7 +44,12 @@ public class AddCommand implements Command {
         writer.write("Input ISBN:\n");
         writer.flush();
         String isbn = br.readLine();
-        Book record = new Book(name, author, genre, publishDate, annotation, isbn);
-        bookCatalog.addRecord(record);
+        Book record = new Book(name, author, genre, publishDate, annotation, isbn, client);
+        if (bookCatalog.addRecord(record)) {
+            writer.write("The book was saved successfully\n");
+        } else {
+            writer.write("An error occurred during persisting the book.\n");
+        }
+        writer.flush();
     }
 }

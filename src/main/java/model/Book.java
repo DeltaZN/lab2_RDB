@@ -13,5 +13,6 @@ public class Book {
     private String genre;
     private String publishDate;
     private String annotation;
-    private String isbn;
+    private String ISBN;
+    private Client client;
 }
