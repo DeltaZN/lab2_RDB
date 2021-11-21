@@ -31,7 +31,10 @@ public class LoginCommand implements Command {
         writer.write("Input login\n");
         writer.flush();
         String login = br.readLine();
-        Client client = bookCatalog.authenticate(login);
+        writer.write("Input password\n");
+        writer.flush();
+        String password = br.readLine();
+        Client client = bookCatalog.authenticate(login, password);
         if (client != null) {
             writer.write("Successfully logged in!\n");
         } else {

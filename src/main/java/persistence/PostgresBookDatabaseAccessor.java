@@ -3,6 +3,7 @@ package persistence;
 import lombok.SneakyThrows;
 import model.Book;
 import model.Client;
+import security.Security;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -22,7 +23,8 @@ public class PostgresBookDatabaseAccessor implements AppDatabaseAccessor {
     private void initTables() {
         try (Statement stmt = connection.createStatement()) {
             String clientsTableSql = "CREATE TABLE IF NOT EXISTS clients"
-                    + "(client_id SERIAL PRIMARY KEY, name varchar(30) NOT NULL UNIQUE)";
+                    + "(client_id SERIAL PRIMARY KEY, name varchar(30) NOT NULL UNIQUE," +
+                    "password text NOT NULL, salt text NOT NULL)";
             stmt.execute(clientsTableSql);
 
             String tableSql = "CREATE TABLE IF NOT EXISTS books"
@@ -65,7 +67,9 @@ public class PostgresBookDatabaseAccessor implements AppDatabaseAccessor {
                 if (resultSet.next()) {
                     return new Client(
                             resultSet.getInt("client_id"),
-                            resultSet.getString("name")
+                            resultSet.getString("name"),
+                            resultSet.getString("password"),
+                            resultSet.getString("salt")
                     );
                 } else {
                     throw new IllegalStateException("Client doesn't exists!");
@@ -83,7 +87,9 @@ public class PostgresBookDatabaseAccessor implements AppDatabaseAccessor {
                 if (resultSet.next()) {
                     return new Client(
                             resultSet.getInt("client_id"),
-                            name
+                            name,
+                            resultSet.getString("password"),
+                            resultSet.getString("salt")
                     );
                 }
             }
@@ -92,11 +98,15 @@ public class PostgresBookDatabaseAccessor implements AppDatabaseAccessor {
     }
 
     @Override
-    public boolean register(String name) {
-        String insertBookSql = "INSERT INTO clients(name) VALUES (?)";
+    public boolean register(String name, String password) {
+        String salt = Security.generateSalt();
+        String hashedPassword = Security.hashPassword(password, salt);
+        String insertBookSql = "INSERT INTO clients(name, password, salt) VALUES (?, ?, ?)";
         boolean isSuccessful = false;
         try (PreparedStatement stmt = connection.prepareStatement(insertBookSql)) {
             stmt.setString(1, name);
+            stmt.setString(2, hashedPassword);
+            stmt.setString(3, salt);
             stmt.execute();
             isSuccessful = true;
         } catch (SQLException throwable) {

@@ -3,6 +3,7 @@ package repository;
 import model.Book;
 import model.Client;
 import persistence.AppDatabaseAccessor;
+import security.Security;
 import util.Pair;
 
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -22,15 +23,19 @@ public class BookCatalog {
         this.booksList.addAll(bookAccessor.findAll(clientId));
     }
 
-    public Client authenticate(String name) {
-        return bookAccessor.findClientByName(name);
+    public Client authenticate(String name, String password) {
+        Client client = bookAccessor.findClientByName(name);
+        if (client != null && client.getPassword().equals(Security.hashPassword(password, client.getSalt()))) {
+            return client;
+        }
+        return null;
     }
 
-    public Pair<String, Client> register(String name) {
+    public Pair<String, Client> register(String name, String password) {
         if (bookAccessor.findClientByName(name) != null) {
             return new Pair<>("User is already registered!", null);
         }
-        boolean isSuccessful = bookAccessor.register(name);
+        boolean isSuccessful = bookAccessor.register(name, password);
         if (isSuccessful) {
             return new Pair<>("Successfully registered!", bookAccessor.findClientByName(name));
         } else {

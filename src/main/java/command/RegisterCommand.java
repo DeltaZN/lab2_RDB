@@ -31,7 +31,10 @@ public class RegisterCommand implements Command {
         writer.write("Input login\n");
         writer.flush();
         String login = br.readLine();
-        Pair<String, Client> pair = bookCatalog.register(login);
+        writer.write("Input password\n");
+        writer.flush();
+        String password = br.readLine();
+        Pair<String, Client> pair = bookCatalog.register(login, password);
         if (pair.second != null) {
             writer.write("Successfully registered and logged in!\n");
         } else {
