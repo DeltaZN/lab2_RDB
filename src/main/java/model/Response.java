@@ -1,12 +1,12 @@
 package model;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
+@Getter
+@AllArgsConstructor
 public class Response {
-    String message;
-
-    public Response(String message) {
-        this.message = message;
-    }
-
+    private final String message;
     @Override
     public String toString() {
         return "Ответ сервера:" + message + '\n';

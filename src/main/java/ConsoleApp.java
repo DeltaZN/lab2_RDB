@@ -11,7 +11,7 @@ public class ConsoleApp {
     int state = State.IDLE;
     String currentBy = null;
     Book currentBook = new Book();
-    socketConnector client = new socketConnector();
+    SocketConnector client = new SocketConnector();
 
 
     private String sendTask(Task task) {

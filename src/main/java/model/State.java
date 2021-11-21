@@ -11,5 +11,4 @@ public class State {
     public static final int FIND = 7;
     public static final int FIND_VALUE = 8;
     public static final int EXIT = -1;
-
 }

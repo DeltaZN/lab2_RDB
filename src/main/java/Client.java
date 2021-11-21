@@ -9,7 +9,6 @@ public class Client {
             app.handle(scanner.next());
             app.print();
             System.out.print("> ");
-
         }
     }
 }

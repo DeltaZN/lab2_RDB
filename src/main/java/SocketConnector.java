@@ -2,14 +2,14 @@ import java.io.*;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
-public class    socketConnector {
+public class SocketConnector {
 
     private static Socket clientSocket;
     private static BufferedReader reader;
     private static BufferedReader in;
     private static BufferedWriter out;
 
-    public socketConnector() {
+    public SocketConnector() {
         try {
             clientSocket = new Socket("localhost", 4004);
             reader = new BufferedReader(new InputStreamReader(System.in));
